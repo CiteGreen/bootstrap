@@ -21,24 +21,32 @@
 
   Tab.TRANSITION_DURATION = 150
 
+  var getContentSelector = function (element) {
+    var $element = $(element)
+    var selector = $element.data('target')
+
+    if (!selector) {
+      selector = $element.attr('href')
+      selector = selector && selector.replace(/.*(?=#[^\s]*$)/, '') // strip for ie7
+    }
+    return selector
+  }
+
   Tab.prototype.show = function () {
     var $this    = this.element
     var $ul      = $this.closest('ul:not(.dropdown-menu)')
-    var selector = $this.data('target')
-
-    if (!selector) {
-      selector = $this.attr('href')
-      selector = selector && selector.replace(/.*(?=#[^\s]*$)/, '') // strip for ie7
-    }
+    var selector = getContentSelector(this.element)
 
     if ($this.parent('li').hasClass('active')) return
 
     var $previous = $ul.find('.active:last a')
     var hideEvent = $.Event('hide.bs.tab', {
-      relatedTarget: $this[0]
+      relatedTarget: $this[0],
+      contentSelector: getContentSelector($previous[0])
     })
     var showEvent = $.Event('show.bs.tab', {
-      relatedTarget: $previous[0]
+      relatedTarget: $previous[0],
+      contentSelector: getContentSelector($this[0])
     })
 
     $previous.trigger(hideEvent)
@@ -52,11 +60,13 @@
     this.activate($target, $target.parent(), function () {
       $previous.trigger({
         type: 'hidden.bs.tab',
-        relatedTarget: $this[0]
+        relatedTarget: $this[0],
+        contentSelector: getContentSelector($previous[0])
       })
       $this.trigger({
         type: 'shown.bs.tab',
-        relatedTarget: $previous[0]
+        relatedTarget: $previous[0],
+        contentSelector: getContentSelector($this[0])
       })
     })
   }
